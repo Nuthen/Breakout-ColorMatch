@@ -9,26 +9,48 @@ function preSolve(a, b, coll)
 
 end
 function postSolve(a, b, coll, normalimpulse, tangentimpulse)
-    if a:getUserData() then
+    if a:getUserData() and b:getUserData() then
         local d = a:getUserData()
+        local other = b:getUserData()
         if d.type == 'brick' then
             if game:isValidHit(d.colorType) then
                 instance_destroy(d.object)
             end
         elseif d.type == 'ball' then
             --self.ball:addToLine()
+            if other.type == 'ground' then
+                game.moveScreen(other.dir)
+            end
         end
     end
-    if b:getUserData() then
+    if b:getUserData() and a:getUserData() then
         local d = b:getUserData()
+        local other = a:getUserData()
         if d.type == 'brick' then
             if game:isValidHit(d.colorType) then
                 instance_destroy(d.object)
             end
         elseif d.type == 'ball' then
             --d.object:addToLine()
+            if other.type == 'ground' then
+                game.moveScreen(other.dir)
+            end
         end
     end
+end
+
+function game:moveScreen(dir) -- takes string of top, bottom, left, right
+    local x, y, display = love.window.getPosition( )
+
+    local dx, dy = 0, 0
+    local speed = 5
+
+    if dir == 'top' then dy = -speed end
+    if dir == 'bottom' then dy = speed end
+    if dir == 'left' then dx = -speed end
+    if dir == 'right' then dx = speed end
+
+    love.window.setPosition( x + dx, y + 5, display )
 end
 
 
@@ -42,25 +64,33 @@ function game:enter()
     world:setCallbacks(beginContact, endContact, preSolve, postSolve)
 
     -- Create the outer bounds area
+    -- bottom wall
     ground = {}
     ground.body = love.physics.newBody(world, 300, 800-16/2)
     ground.shape = love.physics.newRectangleShape(600, 16)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
+    ground.fixture:setUserData({object = self, type = 'ground', dir = 'bottom'})
 
+    -- top wall
     ground2 = {}
     ground2.body = love.physics.newBody(world, 300, 16/2)
     ground2.shape = love.physics.newRectangleShape(600, 16)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
+    ground2.fixture:setUserData({object = self, type = 'ground', dir = 'top'})
 
+    -- left wall
     ground3 = {}
     ground3.body = love.physics.newBody(world, 16/2, 400)
     ground3.shape = love.physics.newRectangleShape(16, 800)
     ground3.fixture = love.physics.newFixture(ground3.body, ground3.shape)
+    ground2.fixture:setUserData({object = self, type = 'ground', dir = 'left'})
 
+    -- right wall
     ground4 = {}
     ground4.body = love.physics.newBody(world, 600-16/2, 400)
     ground4.shape = love.physics.newRectangleShape(16, 800)
     ground4.fixture = love.physics.newFixture(ground4.body, ground4.shape)
+    ground2.fixture:setUserData({object = self, type = 'ground', dir = 'right'})
 
 
     -- gameWidth and gameHeight is screen size minus the padding area
