@@ -12,13 +12,22 @@ function preSolve(a, b, coll)
 end
 function postSolve(a, b, coll, normalimpulse, tangentimpulse)
     if a:getUserData() then
-        local d = a:getUserData()
-        instance_destroy(d.object)
+        local d = a:getUserData();
+        if game:isValidHit(d.colorType) then
+            instance_destroy(d.object);
+        end
     end
     if b:getUserData() then
-        local d = b:getUserData()
-        instance_destroy(d.object)
+        local d = b:getUserData();
+        if game:isValidHit(d.colorType) then
+            instance_destroy(d.object);
+        end
     end
+end
+
+
+function game:isValidHit(colorType)
+    return colorType == self.targetColor
 end
 
 function game:enter()
@@ -53,7 +62,7 @@ function game:enter()
     -- Create the ball
     ball = {}
     ball.body = love.physics.newBody(world, 300, 400, "dynamic")
-    ball.shape = love.physics.newCircleShape( 12)
+    ball.shape = love.physics.newCircleShape(12);
     ball.fixture = love.physics.newFixture(ball.body, ball.shape, 1)
     ball.fixture:setRestitution(1)
     ball.fixture:setFriction(0)
@@ -63,35 +72,45 @@ function game:enter()
     ball.body:applyLinearImpulse(1000, 1500)
 
     -- gameWidth and gameHeight is screen size minus the padding area
-    local gameWidth = love.graphics.getWidth() - 64
-    local gameHeight = love.graphics.getHeight() - 32
+    local gameWidth = love.graphics.getWidth() - 64;
+    local gameHeight = love.graphics.getHeight() - 32;
 
-    local rows = math.floor(gameWidth / 40) - 1
-    local columns = 6
-    local xoff = (love.graphics.getWidth() - rows*40)/2
-    local yoff = 80
+    local rows = math.floor(gameWidth / 40) - 1;
+    local columns = 6;
+    local xoff = (love.graphics.getWidth() - rows*40)/2;
+    local yoff = 80;
 
-    local colours = {}
-    colours[1] = {255, 0, 0}
-    colours[2] = {0, 255, 0}
-    colours[3] = {0, 0, 255}
-    colours[4] = {255, 255, 0}
-    colours[5] = {255, 0, 255}
-    colours[6] = {0, 255, 255}
+    local activeColors = 3
 
-    for y = 0, columns-1 do
-        for x = 0, rows-1 do
-            local brick = Brick:new(xoff + x * 40, yoff + y * 24, colours[y+1] )
-            table.insert(objList, brick)
+    local colours = {};
+    colours[1] = {255, 0, 0};
+    colours[2] = {0, 255, 0};
+    colours[3] = {0, 0, 255};
+    colours[4] = {255, 255, 0};
+    colours[5] = {255, 0, 255};
+    colours[6] = {0, 255, 255};
+
+    for y = 1, columns do
+        for x = 1, rows do
+            local colorType = (math.floor((x-1)*(1/4)) + y) % activeColors + 1
+            local brick = Brick:new(xoff + (x-1) * 40, yoff + (y-1) * 24, colours[colorType], colorType);
+            table.insert(objList, brick);
         end
     end
 
-    table.insert(objList, Paddle:new())
+    table.insert(objList, Paddle:new());
+
+    self.targetColor = 1
+    self.switchTick = 10
+    self.switchTimer = 0
+    self.colorChoices = activeColors
+
+    self.colors = colours
 end
 
 function game:update(dt)
-	Flux.update(dt)
-    world:update(dt)
+    Flux.update(dt);
+    world:update(dt);
 
     next_time = next_time + min_dt
     if love.keyboard.isDown('escape') then
@@ -104,6 +123,32 @@ function game:update(dt)
         for key, value in pairs(objList) do
             value:update(dt)
         end
+    end
+
+    self.switchTimer = self.switchTimer + dt
+    if self.switchTimer >= self.switchTick then
+        self.switchTimer = 0
+
+        self:pickTarget()
+    end
+end
+
+function game:pickTarget()
+    local oldTarget = self.targetColor
+    local possible = self.colorChoices
+
+    if self.colorChoices > 1 then
+        local choices = {}
+        for i = 1, possible do
+            if i ~= oldTarget then -- ensure it is a different color than before
+                table.insert(choices, i)
+            end
+        end
+
+        local index = math.random(1, #choices)
+        self.targetColor = choices[index]
+    else
+        self.targetColor = 1
     end
 end
 
@@ -140,15 +185,21 @@ function game:draw()
     love.graphics.polygon("fill", ground4.body:getWorldPoints(ground4.shape:getPoints()))
 
     -- Draw GUI
-   for key, value in pairs(objList) do
-       value:drawGui()
-       love.graphics.reset()
-   end
-
-    local cur_time = love.timer.getTime()
-    if next_time <= cur_time then
-        next_time = cur_time
-        return
+    for key, value in pairs(objList) do
+        value:drawGui();
+        love.graphics.reset();
     end
-    love.timer.sleep(next_time - cur_time)
+
+
+    -- DRAW TARGET BRICK
+
+    local x, y = 5, 5
+    local width = 40;
+    local height = 24;
+
+    love.graphics.setColour(self.colors[self.targetColor]);
+    love.graphics.rectangle("fill", x, y, width, height);
+
+    love.graphics.setColour({0, 0, 0});
+    love.graphics.rectangle("line", x, y, width, height);
 end
