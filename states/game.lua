@@ -138,7 +138,7 @@ function game:remainingOfColor(colorType)
 
     for k, obj in ipairs(objList) do
         if obj:isInstanceOf(Brick) then
-            if Brick.colorIndex == colorType then
+            if obj.colorIndex == colorType then
                 count = count + 1
             end
         end
