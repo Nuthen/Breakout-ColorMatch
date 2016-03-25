@@ -1,17 +1,11 @@
-Ball = Class('Ball', GameObject)
+Ball = Class('Ball')
 
-function Ball:initialize()
-    self.body = love.physics.newBody(world, 300, 400, "dynamic")
-    self.shape = love.physics.newCircleShape(12)
-    self.fixture = love.physics.newFixture(self.body, self.shape, 1)
-    self.fixture:setRestitution(1)
-    self.fixture:setFriction(0)
-    self.body:setBullet(true)
-    self.body:setFixedRotation(true)
-	self.fixture:setUserData({object = self, type = "ball", colorType = -1})
-
-    self.body:applyLinearImpulse(1000, 1500)
-
+function Ball:initialize(x, y)
+    self.width = 15
+    self.height = 15
+    self.position = vector(x or love.graphics.getWidth()/2 - self.width/2, y or love.graphics.getHeight() - 400)
+    self.speed = 500
+    self.velocity = vector(self.speed, self.speed)
     self.color = {255, 255, 255, 255}
     self.lineColor = {255, 0, 255, 255}
 
@@ -19,12 +13,29 @@ function Ball:initialize()
     self.posMax = 100
 end
 
-function Ball:destroy()
-	self.body:destroy()
-end
-
-function Ball:update(dt)
+function Ball:update(dt, world)
 	self:addToLine()
+
+    local goal = self.position + self.velocity * dt
+    local actualX, actualY, cols, len = world:move(self, goal.x, goal.y) 
+    self.position.x, self.position.y = actualX, actualY
+
+    for i, col in pairs(cols) do
+        local other = col.other
+
+        -- flip velocity
+        if col.normal.y ~= 0 then
+            self.velocity.y = self.velocity.y * -1
+        end
+
+        if col.normal.x ~= 0 then
+            self.velocity.x = self.velocity.x * -1
+        end
+
+        if other:isInstanceOf(Brick) then
+            game:remove(other)
+        end
+    end
 end
 
 function Ball:addToLine()
@@ -32,8 +43,8 @@ function Ball:addToLine()
 		table.remove(self.prevPos, 2)
 		table.remove(self.prevPos, 1)
 	end
-	table.insert(self.prevPos, self.body:getX())
-	table.insert(self.prevPos, self.body:getY())
+	table.insert(self.prevPos, self.position.x + self.width/2)
+	table.insert(self.prevPos, self.position.y + self.height/2)
 end
 
 function Ball:draw()
@@ -43,6 +54,6 @@ function Ball:draw()
 		love.graphics.line(curve:render(8))
 	end
 
-	love.graphics.setColor(self.color)
-	love.graphics.circle("fill", self.body:getX(), self.body:getY(), self.shape:getRadius())
+    love.graphics.setColor(self.color)
+    love.graphics.rectangle("fill", self.position.x, self.position.y, self.width, self.height)
 end

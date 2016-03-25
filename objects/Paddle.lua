@@ -1,47 +1,34 @@
-Paddle = Class('Paddle', GameObject)
+Paddle = Class('Paddle')
 
 function Paddle:initialize(x, y)
-	GameObject:initialize()
-	self.width = 80
+    self.width = 80
 	self.height = 16
-	self.x = x or (love.graphics.getWidth() - self.width)/2
-	self.y = y or love.graphics.getHeight() - 80
-	self.color = color
-    self.body = love.physics.newBody(world, self.x + self.width/2, self.y + self.height/2, dynamic)
-    self.shape = love.physics.newRectangleShape(self.width, self.height)
-    self.fixture = love.physics.newFixture(self.body, self.shape)
-	self.fixture:setUserData({object = self, type = 'paddle'})
-
+	self.position = vector(
+        x or love.graphics.getWidth()/2 - self.width/2,
+        y or love.graphics.getHeight() - 80 
+    )
+    self.speed = 500
+	self.color = {255, 255, 255}
 	self.shakeDistance = -15
 end
 
-function Paddle:destroy()
-	self.body:destroy()
-end
-
 function Paddle:draw()
-	love.graphics.setColor({255, 255, 255})
-	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+	love.graphics.setColor(self.color)
+	love.graphics.rectangle("fill", self.position.x, self.position.y, self.width, self.height)
 end
 
-function Paddle:update(dt)
-	if love.keyboard.isDown("left") then
-		self.x = self.x - 500 * dt
-		self.x = math.max(16, self.x)
+function Paddle:update(dt, world)
+    local goal = self.position:clone()
+    if love.keyboard.isDown("a", "left") then
+        goal.x = self.position.x - self.speed * dt 
+    elseif love.keyboard.isDown("d", "right") then
+        goal.x = self.position.x + self.speed * dt 
+    end
 
-		if self.body:getX() - self.width/2 < 32 + self.shakeDistance then
-			game:moveScreen('left')
-		end
+    local actualX, actualY, cols, len = world:move(self, goal.x, goal.y) 
+    self.position.x, self.position.y = actualX, actualY
 
-		self.body:setPosition(self.x + self.width/2, self.y + self.height/2)
-	end
-	if love.keyboard.isDown("right") then
-		self.x = self.x + 500 * dt
-		self.x = math.min(love.graphics.getWidth() - self.width - 16, self.x)
-
-		if self.body:getX() + self.width/2 > 600 - 32 - self.shakeDistance then
-			game:moveScreen('right')
-		end
-		self.body:setPosition(self.x + self.width/2, self.y + self.height/2)
-	end
+    for i, col in pairs(cols) do
+        local other = col.other
+    end
 end

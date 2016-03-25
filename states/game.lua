@@ -1,38 +1,20 @@
 game = {}
 
-function beginContact(a, b, coll)
+objects = {}
+function game:add(obj)
+    table.insert(objects, obj)
+    self.world:add(obj, obj.position.x, obj.position.y, obj.width, obj.height)
+    return obj
 end
-function endContact(a, b, coll)
 
-end
-function preSolve(a, b, coll)
-
-end
-function postSolve(a, b, coll, normalimpulse, tangentimpulse)
-    if a:getUserData() and b:getUserData() then
-        local d = a:getUserData()
-        local other = b:getUserData()
-        if d.type == 'brick' then
-            if game:isValidHit(d.colorType) then
-                instance_destroy(d.object)
-            end
-        elseif d.type == 'ball' then
-            --self.ball:addToLine()
-            game:moveScreen(other.dir)
+function game:remove(obj)
+    for i, o in pairs(objects) do
+        if o == obj then
+            table.remove(objects, i)
+            break
         end
     end
-    if b:getUserData() and a:getUserData() then
-        local d = b:getUserData()
-        local other = a:getUserData()
-        if d.type == 'brick' then
-            if game:isValidHit(d.colorType) then
-                instance_destroy(d.object)
-            end
-        elseif d.type == 'ball' then
-            --d.object:addToLine()
-            game:moveScreen(other.dir)
-        end
-    end
+    self.world:remove(obj)
 end
 
 function game:moveScreen(dir) -- takes string of top, bottom, left, right
@@ -111,43 +93,18 @@ function game:enter()
     self.windowVeldx = 0
     self.windowVeldy = 0
 
-    love.physics.setMeter(10)
-    world = love.physics.newWorld(0, 0, false)
-    world:setCallbacks(beginContact, endContact, preSolve, postSolve)
+    self.world = bump.newWorld()
 
     -- Create the outer bounds area
+    local wallSize = 20
     -- bottom wall
-    ground = {}
-    ground.body = love.physics.newBody(world, 300, 800-16/2)
-    ground.shape = love.physics.newRectangleShape(600, 16)
-    ground.fixture = love.physics.newFixture(ground.body, ground.shape)
-    ground.fixture:setUserData({object = self, type = 'ground', dir = 'bottom'})
-    ground.fixture:setCategory(1)
-
+    local wall = self:add(StaticObject:new(0, love.graphics.getHeight()-wallSize, love.graphics.getWidth(), wallSize))
     -- top wall
-    ground2 = {}
-    ground2.body = love.physics.newBody(world, 300, 16/2)
-    ground2.shape = love.physics.newRectangleShape(600, 16)
-    ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
-    ground2.fixture:setUserData({object = self, type = 'ground', dir = 'top'})
-    ground2.fixture:setCategory(2)
-
+    local wall = self:add(StaticObject:new(0, 0, love.graphics.getWidth(), wallSize))
     -- left wall
-    ground3 = {}
-    ground3.body = love.physics.newBody(world, 16/2, 400)
-    ground3.shape = love.physics.newRectangleShape(16, 800)
-    ground3.fixture = love.physics.newFixture(ground3.body, ground3.shape)
-    ground3.fixture:setUserData({object = self, type = 'ground', dir = 'left'})
-    ground3.fixture:setCategory(3)
-
+    local wall = self:add(StaticObject:new(0, 0, wallSize, love.graphics.getHeight())) 
     -- right wall
-    ground4 = {}
-    ground4.body = love.physics.newBody(world, 600-16/2, 400)
-    ground4.shape = love.physics.newRectangleShape(16, 800)
-    ground4.fixture = love.physics.newFixture(ground4.body, ground4.shape)
-    ground4.fixture:setUserData({object = self, type = 'ground', dir = 'right'})
-    ground4.fixture:setCategory(4)
-
+    local wall = self:add(StaticObject:new(love.graphics.getWidth()-wallSize, 0, wallSize, love.graphics.getHeight()))
 
     -- gameWidth and gameHeight is screen size minus the padding area
     local gameWidth = love.graphics.getWidth() - 64
@@ -171,14 +128,12 @@ function game:enter()
     for y = 1, columns do
         for x = 1, rows do
             local colorType = (math.floor((x-1)*(1/4)) + y) % activeColors + 1
-            local brick = Brick:new(xoff + (x-1) * 40, yoff + (y-1) * 24, colours[colorType], colorType)
-            table.insert(objList, brick)
+            local brick = self:add(Brick:new(xoff + (x-1) * 40, yoff + (y-1) * 24, colours[colorType], colorType))
         end
     end
 
-    table.insert(objList, Paddle:new())
-
-    self.ball = Ball:new()
+    self.paddle = self:add(Paddle:new())
+    self.ball = self:add(Ball:new())
 
     self.targetColor = 1
     self.switchTick = 10 -- How many seconds between choosing a target block
@@ -190,20 +145,14 @@ end
 
 function game:update(dt)
     Flux.update(dt)
-    world:update(dt)
 
     if love.keyboard.isDown('escape') then
         love.event.push('quit')
     end
 
-    if masterObj then
-        masterObj:update(dt)
-    else
-        for key, value in pairs(objList) do
-            value:update(dt)
-        end
+    for key, obj in pairs(objects) do
+        obj:update(dt, self.world)
     end
-    self.ball:update(dt)
 
     -- Determines when the target block should be changed
     self.switchTimer = self.switchTimer + dt
@@ -219,7 +168,7 @@ end
 function game:remainingOfColor(colorType)
     count = 0
 
-    for k, obj in ipairs(objList) do
+    for k, obj in ipairs(objects) do
         if obj:isInstanceOf(Brick) then
             if obj.colorIndex == colorType then
                 count = count + 1
@@ -267,30 +216,10 @@ function game:draw()
     love.graphics.setColor(255, 255, 255)
     love.graphics.setBackgroundColor(0, 0, 0)
 
-    -- Draw
-    for i = 0, 3, 1 do
-        for key, value in pairs(objList) do
-            if value.depth == i then
-                value:draw()
-                love.graphics.reset()
-            end
-        end
+    for key, obj in pairs(objects) do
+        obj:draw()
     end
     self.ball:draw()
-
-    love.graphics.setColor({255, 255, 255})
-
-    love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
-    love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
-    love.graphics.polygon("fill", ground3.body:getWorldPoints(ground3.shape:getPoints()))
-    love.graphics.polygon("fill", ground4.body:getWorldPoints(ground4.shape:getPoints()))
-
-    -- Draw GUI
-    for key, value in pairs(objList) do
-        value:drawGui()
-        love.graphics.reset()
-    end
-
 
     -- DRAW TARGET BRICK
 

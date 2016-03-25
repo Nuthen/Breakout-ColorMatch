@@ -1,17 +1,17 @@
-Class = require 'libs/middleclass'
-Flux = require 'libs/flux'
+Class = require 'libs.middleclass'
+Flux = require 'libs.flux'
 state = require 'libs.state'
+bump = require 'libs.bump'
+vector = require 'libs.vector'
 
 -- entities
-require 'objects.GameObject'
 require 'objects.Brick'
 require 'objects.Paddle'
 require 'objects.Ball'
+require 'objects.StaticObject'
 
 -- gamestates
---require 'states.menu'
 require 'states.game'
---require 'states.options'
 
 function love.load()
     _font = 'assets/font/OpenSans-Regular.ttf'
@@ -62,9 +62,7 @@ function love.load()
 end
 
 function love.keypressed(key, code)
-    if key == "escape" then
-        love.event.quit()
-    end
+
 end
 
 function love.mousepressed(x, y, mbutton)
