@@ -1,12 +1,17 @@
 Class = require 'libs/middleclass'
-Flux = require "libs/flux"
+Flux = require 'libs/flux'
 state = require 'libs.state'
 
-require "objects/"
+-- entities
+require 'objects.GameObject'
+require 'objects.Brick'
+require 'objects.Paddle'
+require 'objects.Ball'
 
 -- gamestates
-require 'states.menu'
+--require 'states.menu'
 require 'states.game'
+--require 'states.options'
 
 function love.load()
     _font = 'assets/font/OpenSans-Regular.ttf'
@@ -38,7 +43,7 @@ function love.load()
     })
 
     love.window.setIcon(love.image.newImageData('assets/img/icon.png'))
-	love.graphics.setDefaultFilter("nearest", "nearest")
+    love.graphics.setDefaultFilter("nearest", "nearest")
     love.graphics.setFont(font[14])
 
     state.registerEvents()

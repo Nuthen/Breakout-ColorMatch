@@ -1,9 +1,9 @@
-GameObject = Class('GameObject');
+GameObject = Class('GameObject')
 
 function GameObject:initialize()
-	self.x = 0;
-	self.y = 0;
-	self.depth = 0;
+	self.x = 0
+	self.y = 0
+	self.depth = 0
 end
 function GameObject:update(dt)
 
@@ -34,34 +34,34 @@ function GameObject:wheelmoved( x, y)
 end
 
 -- Setup our object list
-objList = {};
+objList = {}
 -- Master Objects allow us to pause other objects
-masterObj = nil;
+masterObj = nil
 
 -- Object helpers
 function object_destroy(object)
     for k, value in pairs(objList) do
         if value:isInstanceOf(object) then
-			value:destroy();
-            objList[k] = nil;
+			value:destroy()
+            objList[k] = nil
         end
     end
 end
 function instance_destroy(instance)
     for k, value in pairs(objList) do
         if value == instance then
-			value:destroy();
-            objList[k] = nil;
-            return;
+			value:destroy()
+            objList[k] = nil
+            return
         end
     end
 end
 function object_find(object)
-    local objs = {};
+    local objs = {}
     for k, value in pairs(objList) do
         if value:isInstanceOf(object) then
-            table.insert(objs, objList[k]);
+            table.insert(objs, objList[k])
         end
     end
-    return objs;
+    return objs
 end
