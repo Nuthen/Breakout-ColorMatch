@@ -197,9 +197,9 @@ function game:draw()
     local width = 40;
     local height = 24;
 
-    love.graphics.setColour(self.colors[self.targetColor]);
+    love.graphics.setColor(self.colors[self.targetColor]);
     love.graphics.rectangle("fill", x, y, width, height);
 
-    love.graphics.setColour({0, 0, 0});
+    love.graphics.setColor({0, 0, 0});
     love.graphics.rectangle("line", x, y, width, height);
 end

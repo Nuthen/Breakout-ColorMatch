@@ -1,6 +1,6 @@
 Brick = Class('Brick', GameObject);
 
-function Brick:initialize(x, y, colour, colorIndex)
+function Brick:initialize(x, y, color, colorIndex)
 	GameObject:initialize();
 	self.x = x;
 	self.y = y;
