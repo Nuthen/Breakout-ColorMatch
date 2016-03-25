@@ -16,7 +16,6 @@ function Ball:initialize()
     self.lineColor = {255, 0, 255, 255}
 
     self.prevPos = {} -- table of previous positions
-
     self.posMax = 100
 end
 
@@ -40,7 +39,8 @@ end
 function Ball:draw()
 	love.graphics.setColor(self.lineColor)
 	if #self.prevPos >= 4 then
-		love.graphics.line(self.prevPos)
+		local curve = love.math.newBezierCurve(self.prevPos)
+		love.graphics.line(curve:render(8))
 	end
 
 	love.graphics.setColor(self.color)
