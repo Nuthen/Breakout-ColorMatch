@@ -30,7 +30,7 @@ function Paddle:update(dt)
 		self.x = math.max(16, self.x)
 
 		if self.body:getX() - self.width/2 < 32 + self.shakeDistance then
-			game:moveScreen('left')
+			
 		end
 
 		self.body:setPosition(self.x + self.width/2, self.y + self.height/2)
@@ -40,7 +40,7 @@ function Paddle:update(dt)
 		self.x = math.min(love.graphics.getWidth() - self.width - 16, self.x)
 
 		if self.body:getX() + self.width/2 > 600 - 32 - self.shakeDistance then
-			game:moveScreen('right')
+
 		end
 		self.body:setPosition(self.x + self.width/2, self.y + self.height/2)
 	end
