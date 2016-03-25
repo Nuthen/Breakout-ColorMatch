@@ -1,13 +1,6 @@
 game = {}
 
--- Game TODO:
---      * Add identity and title to conf.lua
-
-
--- Some constants
-Game = {Title = "", FPS = 60, BackgroundColor = {64, 64, 64}};
-love.graphics.setColour = love.graphics.setColor;
-
+MAX_FPS = 60
 
 function beginContact(a, b, coll)
 end
@@ -38,32 +31,32 @@ function game:isValidHit(colorType)
 end
 
 function game:enter()
-    min_dt = 1/Game.FPS;
-    next_time = love.timer.getTime();
+    min_dt = 1/MAX_FPS
+    next_time = love.timer.getTime()
 
-    love.physics.setMeter(10);
-    world = love.physics.newWorld(0, 0, true);
-    world:setCallbacks(beginContact, endContact, preSolve, postSolve);
+    love.physics.setMeter(10)
+    world = love.physics.newWorld(0, 0, true)
+    world:setCallbacks(beginContact, endContact, preSolve, postSolve)
 
     -- Create the outer bounds area
     ground = {}
     ground.body = love.physics.newBody(world, 300, 800-16/2)
-    ground.shape = love.physics.newRectangleShape(600, 16);
+    ground.shape = love.physics.newRectangleShape(600, 16)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
 
     ground2 = {}
     ground2.body = love.physics.newBody(world, 300, 16/2)
-    ground2.shape = love.physics.newRectangleShape(600, 16);
+    ground2.shape = love.physics.newRectangleShape(600, 16)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
 
     ground3 = {}
     ground3.body = love.physics.newBody(world, 16/2, 400)
-    ground3.shape = love.physics.newRectangleShape(16, 800);
+    ground3.shape = love.physics.newRectangleShape(16, 800)
     ground3.fixture = love.physics.newFixture(ground3.body, ground3.shape)
 
     ground4 = {}
     ground4.body = love.physics.newBody(world, 600-16/2, 400)
-    ground4.shape = love.physics.newRectangleShape(16, 800);
+    ground4.shape = love.physics.newRectangleShape(16, 800)
     ground4.fixture = love.physics.newFixture(ground4.body, ground4.shape)
 
     -- Create the ball
@@ -71,10 +64,10 @@ function game:enter()
     ball.body = love.physics.newBody(world, 300, 400, "dynamic")
     ball.shape = love.physics.newCircleShape(12);
     ball.fixture = love.physics.newFixture(ball.body, ball.shape, 1)
-    ball.fixture:setRestitution(1);
-    ball.fixture:setFriction(0);
-    ball.body:setBullet(true);
-    ball.body:setFixedRotation(true);
+    ball.fixture:setRestitution(1)
+    ball.fixture:setFriction(0)
+    ball.body:setBullet(true)
+    ball.body:setFixedRotation(true)
 
     ball.body:applyLinearImpulse(1000, 1500)
 
@@ -119,16 +112,16 @@ function game:update(dt)
     Flux.update(dt);
     world:update(dt);
 
-    next_time = next_time + min_dt;
+    next_time = next_time + min_dt
     if love.keyboard.isDown('escape') then
         love.event.push('quit')
     end
 
     if masterObj then
-        masterObj:update(dt);
+        masterObj:update(dt)
     else
         for key, value in pairs(objList) do
-            value:update(dt);
+            value:update(dt)
         end
     end
 
@@ -189,26 +182,21 @@ end
 
 function game:draw()
     love.graphics.setColor(255, 255, 255)
-    --love.graphics.setFont(font[48])
-    --local x = love.graphics.getWidth()/2 - love.graphics.getFont():getWidth(text)/2
-    --local y = love.graphics.getHeight()/2 - love.graphics.getFont():getHeight(text)/2
-    -- love.graphics.print(text, x, y)
-
-   love.graphics.clear(Game.BackgroundColor);
+    love.graphics.setBackgroundColor(0, 0, 0)
 
     -- Draw
     for i = 0, 3, 1 do
         for key, value in pairs(objList) do
             if value.depth == i then
-                value:draw();
-                love.graphics.reset();
+                value:draw()
+                love.graphics.reset()
             end
         end
     end
 
-    love.graphics.setColor({255, 255, 255});
+    love.graphics.setColor({255, 255, 255})
     if ball then
-        love.graphics.circle("fill", ball.body:getX(), ball.body:getY(), ball.shape:getRadius());
+        love.graphics.circle("fill", ball.body:getX(), ball.body:getY(), ball.shape:getRadius())
     end
 
     love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
@@ -229,9 +217,9 @@ function game:draw()
     local width = 40;
     local height = 24;
 
-    love.graphics.setColour(self.colors[self.targetColor]);
+    love.graphics.setColor(self.colors[self.targetColor]);
     love.graphics.rectangle("fill", x, y, width, height);
 
-    love.graphics.setColour({0, 0, 0});
+    love.graphics.setColor({0, 0, 0});
     love.graphics.rectangle("line", x, y, width, height);
 end

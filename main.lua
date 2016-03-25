@@ -5,9 +5,8 @@ state = require 'libs.state'
 require "objects/"
 
 -- gamestates
---require 'states.menu'
+require 'states.menu'
 require 'states.game'
---require 'states.options'
 
 function love.load()
     _font = 'assets/font/OpenSans-Regular.ttf'
