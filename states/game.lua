@@ -17,84 +17,12 @@ function game:remove(obj)
     self.world:remove(obj)
 end
 
-function game:moveScreen(dir) -- takes string of top, bottom, left, right
-    local x, y, display = love.window.getPosition( )
-
-    local dx, dy = 0, 0
-    local accel = 10
-
-    if dir == 'top'    then dy = -accel end
-    if dir == 'bottom' then dy =  accel end
-    if dir == 'left'   then dx = -accel end
-    if dir == 'right'  then dx =  accel end
-
-    self.windowAcceldx = self.windowAcceldx + dx
-    self.windowAcceldy = self.windowAcceldy + dy
-
-    love.window.setPosition( x + dx, y + dy, display )
-end
-
-function game:updateScreenMove(dt)
-    local x, y, display = love.window.getPosition( )
-    local desktopWidth, desktopHeight = love.window.getDesktopDimensions( display )
-    local width, height = love.graphics.getDimensions( )
-
-    local dx, dy = 0, 0
-    self.windowVeldx = self.windowVeldx + self.windowAcceldx*dt
-    self.windowVeldy = self.windowVeldy + self.windowAcceldy*dt
-
-    dx = dx + self.windowVeldx
-    dy = dy + self.windowVeldy
-
-    dx = dx * dt
-    dy = dy * dt
-
-    -- move back towards the middle of the screen
-    --dx = dx + (windowWidth/2 - width/2 - x)*.01
-    --dy = dy + (windowHeight/2 - height/2 - y)*.01
-
-    local dir = math.atan2((y - (desktopHeight/2 - height/2)), (x - (desktopWidth/2 - width/2)))
-    local centerdx = math.cos(dir) * -.5
-    local centerdy = math.sin(dir) * -.5
-
-    local tol = .1
-    if math.abs(centerdx) < tol then centerdx = 0 end
-    if math.abs(centerdy) < tol then centerdy = 0 end
-
-    dx = dx + centerdx
-    dy = dy + centerdy
-
-    --if math.abs(dx) < tol then dx = 0 end
-    --if math.abs(dy) < tol then dy = 0 end
-
-    love.window.setPosition( x + dx, y + dy, display )
-
-    local damping = .9
-    self.windowAcceldx = self.windowAcceldx * damping
-    self.windowAcceldy = self.windowAcceldy * damping
-
-    -- cut of vel if below tol
-    if math.abs(self.windowVeldx) < tol then self.windowVeldx = 0 end
-    if math.abs(self.windowVeldy) < tol then self.windowVeldy = 0 end
-
-    if math.abs(self.windowAcceldx) < tol then self.windowAcceldx = 0 end
-    if math.abs(self.windowAcceldy) < tol then self.windowAcceldy = 0 end
-end
-
-
 function game:isValidHit(colorType)
     return colorType == self.targetColor
 end
 
 function game:enter()
-    self.windowAcceldx = 0
-    self.windowAcceldy = 0
-
-    self.windowVeldx = 0
-    self.windowVeldy = 0
-
     self.world = bump.newWorld()
-
     -- Create the outer bounds area
     local wallSize = 20
     -- bottom wall
@@ -161,8 +89,6 @@ function game:update(dt)
 
         self:pickTarget()
     end
-
-    self:updateScreenMove(dt)
 end
 
 function game:remainingOfColor(colorType)
