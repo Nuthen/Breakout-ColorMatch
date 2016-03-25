@@ -140,6 +140,20 @@ function game:update(dt)
     end
 end
 
+function game:remainingOfColor(colorType)
+    count = 0
+
+    for k, obj in ipairs(objList) do
+        if obj:isInstanceOf(Brick) then
+            if Brick.colorIndex == colorType then
+                count = count + 1
+            end
+        end
+    end
+
+    return count
+end
+
 function game:pickTarget()
     local oldTarget = self.targetColor
     local possible = self.colorChoices
@@ -148,12 +162,18 @@ function game:pickTarget()
         local choices = {}
         for i = 1, possible do
             if i ~= oldTarget then -- ensure it is a different color than before
-                table.insert(choices, i)
+                if self:remainingOfColor(i) > 0 then
+                    table.insert(choices, i)
+                end
             end
         end
 
-        local index = math.random(1, #choices)
-        self.targetColor = choices[index]
+        if #choices == 0 then
+            self.targetColor = oldTarget
+        else
+            local index = math.random(1, #choices)
+            self.targetColor = choices[index]
+        end
     else
         self.targetColor = 1
     end

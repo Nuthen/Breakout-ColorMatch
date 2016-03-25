@@ -7,6 +7,7 @@ function Brick:initialize(x, y, colour, colorIndex)
 	self.width = 40;
 	self.height = 24;
 	self.colour = colour;
+	self.colorIndex = colorIndex
     self.body = love.physics.newBody(world, self.x + self.width/2, self.y + self.height/2);
     self.shape = love.physics.newRectangleShape(self.width, self.height);
     self.fixture = love.physics.newFixture(self.body, self.shape);
