@@ -6,7 +6,7 @@ function Paddle:initialize()
 	self.height = 16;
 	self.x = (love.graphics.getWidth() - self.width)/2;
 	self.y = love.graphics.getHeight() - 80;
-	self.colour = colour;
+	self.color = color;
     self.body = love.physics.newBody(world, self.x + self.width/2, self.y + self.height/2);
     self.shape = love.physics.newRectangleShape(self.width, self.height);
     self.fixture = love.physics.newFixture(self.body, self.shape);
@@ -17,7 +17,7 @@ function Paddle:destroy()
 end
 
 function Paddle:draw()
-	love.graphics.setColour({255, 255, 255});
+	love.graphics.setColor({255, 255, 255});
 	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height);
 end
 
