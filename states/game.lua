@@ -18,9 +18,7 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
             end
         elseif d.type == 'ball' then
             --self.ball:addToLine()
-            if other.type == 'ground' then
-                game.moveScreen(other.dir)
-            end
+            game:moveScreen(other.dir)
         end
     end
     if b:getUserData() and a:getUserData() then
@@ -32,9 +30,7 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
             end
         elseif d.type == 'ball' then
             --d.object:addToLine()
-            if other.type == 'ground' then
-                game.moveScreen(other.dir)
-            end
+            game:moveScreen(other.dir)
         end
     end
 end
@@ -43,14 +39,64 @@ function game:moveScreen(dir) -- takes string of top, bottom, left, right
     local x, y, display = love.window.getPosition( )
 
     local dx, dy = 0, 0
-    local speed = 5
+    local accel = 10
 
-    if dir == 'top' then dy = -speed end
-    if dir == 'bottom' then dy = speed end
-    if dir == 'left' then dx = -speed end
-    if dir == 'right' then dx = speed end
+    if dir == 'top'    then dy = -accel end
+    if dir == 'bottom' then dy =  accel end
+    if dir == 'left'   then dx = -accel end
+    if dir == 'right'  then dx =  accel end
 
-    love.window.setPosition( x + dx, y + 5, display )
+    self.windowAcceldx = self.windowAcceldx + dx
+    self.windowAcceldy = self.windowAcceldy + dy
+
+    love.window.setPosition( x + dx, y + dy, display )
+end
+
+function game:updateScreenMove(dt)
+    local x, y, display = love.window.getPosition( )
+    local desktopWidth, desktopHeight = love.window.getDesktopDimensions( display )
+    local width, height = love.graphics.getDimensions( )
+
+    local dx, dy = 0, 0
+    self.windowVeldx = self.windowVeldx + self.windowAcceldx*dt
+    self.windowVeldy = self.windowVeldy + self.windowAcceldy*dt
+
+    dx = dx + self.windowVeldx
+    dy = dy + self.windowVeldy
+
+    dx = dx * dt
+    dy = dy * dt
+
+    -- move back towards the middle of the screen
+    --dx = dx + (windowWidth/2 - width/2 - x)*.01
+    --dy = dy + (windowHeight/2 - height/2 - y)*.01
+
+    local dir = math.atan2((y - (desktopHeight/2 - height/2)), (x - (desktopWidth/2 - width/2)))
+    local centerdx = math.cos(dir) * -.5
+    local centerdy = math.sin(dir) * -.5
+
+    local tol = .1
+    if math.abs(centerdx) < tol then centerdx = 0 end
+    if math.abs(centerdy) < tol then centerdy = 0 end
+
+    dx = dx + centerdx
+    dy = dy + centerdy
+
+    --if math.abs(dx) < tol then dx = 0 end
+    --if math.abs(dy) < tol then dy = 0 end
+
+    love.window.setPosition( x + dx, y + dy, display )
+
+    local damping = .9
+    self.windowAcceldx = self.windowAcceldx * damping
+    self.windowAcceldy = self.windowAcceldy * damping
+
+    -- cut of vel if below tol
+    if math.abs(self.windowVeldx) < tol then self.windowVeldx = 0 end
+    if math.abs(self.windowVeldy) < tol then self.windowVeldy = 0 end
+
+    if math.abs(self.windowAcceldx) < tol then self.windowAcceldx = 0 end
+    if math.abs(self.windowAcceldy) < tol then self.windowAcceldy = 0 end
 end
 
 
@@ -59,8 +105,14 @@ function game:isValidHit(colorType)
 end
 
 function game:enter()
+    self.windowAcceldx = 0
+    self.windowAcceldy = 0
+
+    self.windowVeldx = 0
+    self.windowVeldy = 0
+
     love.physics.setMeter(10)
-    world = love.physics.newWorld(0, 0, true)
+    world = love.physics.newWorld(0, 0, false)
     world:setCallbacks(beginContact, endContact, preSolve, postSolve)
 
     -- Create the outer bounds area
@@ -70,6 +122,7 @@ function game:enter()
     ground.shape = love.physics.newRectangleShape(600, 16)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({object = self, type = 'ground', dir = 'bottom'})
+    ground.fixture:setCategory(1)
 
     -- top wall
     ground2 = {}
@@ -77,20 +130,23 @@ function game:enter()
     ground2.shape = love.physics.newRectangleShape(600, 16)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
     ground2.fixture:setUserData({object = self, type = 'ground', dir = 'top'})
+    ground2.fixture:setCategory(2)
 
     -- left wall
     ground3 = {}
     ground3.body = love.physics.newBody(world, 16/2, 400)
     ground3.shape = love.physics.newRectangleShape(16, 800)
     ground3.fixture = love.physics.newFixture(ground3.body, ground3.shape)
-    ground2.fixture:setUserData({object = self, type = 'ground', dir = 'left'})
+    ground3.fixture:setUserData({object = self, type = 'ground', dir = 'left'})
+    ground3.fixture:setCategory(3)
 
     -- right wall
     ground4 = {}
     ground4.body = love.physics.newBody(world, 600-16/2, 400)
     ground4.shape = love.physics.newRectangleShape(16, 800)
     ground4.fixture = love.physics.newFixture(ground4.body, ground4.shape)
-    ground2.fixture:setUserData({object = self, type = 'ground', dir = 'right'})
+    ground4.fixture:setUserData({object = self, type = 'ground', dir = 'right'})
+    ground4.fixture:setCategory(4)
 
 
     -- gameWidth and gameHeight is screen size minus the padding area
@@ -156,6 +212,8 @@ function game:update(dt)
 
         self:pickTarget()
     end
+
+    self:updateScreenMove(dt)
 end
 
 function game:remainingOfColor(colorType)
