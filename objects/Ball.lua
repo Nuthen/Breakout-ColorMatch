@@ -12,6 +12,10 @@ function Ball:initialize(x, y)
     self.prevPos = {} -- table of previous positions
     self.posMax = 80
     self.trailTime = 0
+
+    self.shakeStrength = 20 -- multiplied by velocity
+
+    self.angle = 0
 end
 
 function Ball:update(dt, world)
@@ -27,6 +31,8 @@ function Ball:update(dt, world)
     self.position.x, self.position.y = actualX, actualY
 
     for i, col in pairs(cols) do
+    	game:addShakeAccel(self.velocity*self.shakeStrength)
+
         local other = col.other
 
         -- flip velocity
@@ -45,14 +51,19 @@ function Ball:update(dt, world)
 
         if other:isInstanceOf(Paddle) then
             self.speed = self.speed * 1.01
+
             signal.emit('paddleHit', self, other)
         end
 
         if other:isInstanceOf(Brick) and game:isValidHit(other.colorIndex) then
             game:remove(other)
-            signal.emit('brickHit', self, other)
+            signal.emit('brickHit', self, other, self.velocity.x, self.velocity.y)
         end
     end
+
+    self.angle = math.atan2(self.velocity.x, self.velocity.y)
+
+    signal.emit('ballMove', self)
 end
 
 function Ball:addToLine()
@@ -72,6 +83,11 @@ function Ball:draw()
 	    love.graphics.line(self.prevPos)
     end
 
+    love.graphics.push()
+    love.graphics.translate(self.position.x + self.width/2, self.position.y + self.width/2)
+    love.graphics.rotate(self.angle)
+    love.graphics.translate(-self.position.x - self.width/2, -self.position.y - self.width/2)
     love.graphics.setColor(self.color)
     love.graphics.rectangle("fill", self.position.x, self.position.y, self.width, self.height)
+    love.graphics.pop()
 end

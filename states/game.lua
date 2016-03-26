@@ -83,10 +83,27 @@ function game:enter()
 
     self.colors = colours
 
-    self:add(Particles:new(), false)
+    --self:add(Particles:new(), false)
+    self.particles = Particles:new()
+    self.shakePos = vector(0, 0)
+    self.shakeReturnSpeed = .1 -- rate it returns to the center
+    self.shakeVel = vector(0, 0)
+    self.shakeAccel = vector(0, 0)
+end
+
+function game:addShakeAccel(accel)
+    self.shakeAccel = self.shakeAccel + accel
 end
 
 function game:update(dt)
+    -- screen shake
+    self.shakeAccel = self.shakeAccel - self.shakeReturnSpeed*self.shakeAccel
+    self.shakeVel = self.shakeVel + self.shakeAccel*dt
+    self.shakePos = self.shakePos + self.shakeVel*dt
+    self.shakePos = self.shakePos - self.shakeReturnSpeed*self.shakePos
+    self.shakeVel = self.shakeVel * .9 -- damping
+    --
+
     Flux.update(dt)
 
     if love.keyboard.isDown('escape') then
@@ -110,6 +127,8 @@ function game:update(dt)
     for i, wall in pairs(self.walls) do
         wall.color = self.colors[self.targetColor]
     end
+
+    self.particles:update(dt)
 end
 
 function game:remainingOfColor(colorType)
@@ -161,12 +180,25 @@ end
 
 function game:draw()
     love.graphics.setColor(255, 255, 255)
-    love.graphics.setBackgroundColor(255, 2, 100)
+    --love.graphics.setBackgroundColor(255, 2, 100)
+    love.graphics.setBackgroundColor(self.colors[self.targetColor]) -- sets the color outside the border
+
+    -- everything in here will be a part of the screen shake
+    love.graphics.push()
+    love.graphics.translate(self.shakePos.x, self.shakePos.y)
+
+    love.graphics.setColor(127, 127, 127) -- this is the true background color
+    love.graphics.rectangle('fill', 5, 5, love.graphics.getWidth()-5, love.graphics.getHeight()-5) -- draws the background color
 
     for key, obj in pairs(objects) do
         obj:draw()
     end
     self.ball:draw()
+
+    self.particles:draw()
+
+    love.graphics.pop()
+    --
 
     -- DRAW TARGET BRICK
 
