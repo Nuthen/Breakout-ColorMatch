@@ -4,17 +4,23 @@ function Ball:initialize(x, y)
     self.width = 12
     self.height = 12
     self.position = vector(x or love.graphics.getWidth()/2 - self.width/2, y or love.graphics.getHeight() - 400)
-    self.speed = 650
+    self.speed = 500
     self.velocity = vector(self.speed, self.speed)
-    self.color = {255, 255, 255, 255}
-    self.lineColor = {255, 0, 255, 255}
+    self.color = {255, 255, 0, 255}
+    self.lineColor = {255, 255, 255, 127}
 
     self.prevPos = {} -- table of previous positions
-    self.posMax = 100
+    self.posMax = 80
+    self.trailTime = 0
 end
 
 function Ball:update(dt, world)
-	self:addToLine()
+	self.trailTime = self.trailTime + dt
+
+    if self.trailTime > 1/100 then
+        self:addToLine()
+        self.trailTime = 0
+    end
 
     local goal = self.position + self.velocity:normalized()*self.speed * dt
     local actualX, actualY, cols, len = world:move(self, goal.x, goal.y) 
@@ -32,8 +38,19 @@ function Ball:update(dt, world)
             self.velocity.x = self.velocity.x * -1
         end
 
+        -- haven't tested this
+        if other:isInstanceOf(StaticObject) and not other:isInstanceOf(Brick) then
+            signal.emit('wallHit', self, other)
+        end
+
+        if other:isInstanceOf(Paddle) then
+            self.speed = self.speed * 1.01
+            signal.emit('paddleHit', self, other)
+        end
+
         if other:isInstanceOf(Brick) and game:isValidHit(other.colorIndex) then
             game:remove(other)
+            signal.emit('brickHit', self, other)
         end
     end
 end
@@ -50,9 +67,10 @@ end
 function Ball:draw()
 	love.graphics.setColor(self.lineColor)
 	if #self.prevPos >= 4 then
-		local curve = love.math.newBezierCurve(self.prevPos)
-		love.graphics.line(curve:render(8))
-	end
+		-- local curve = love.math.newBezierCurve(self.prevPos)
+		-- love.graphics.line(curve:render(8))
+	    love.graphics.line(self.prevPos)
+    end
 
     love.graphics.setColor(self.color)
     love.graphics.rectangle("fill", self.position.x, self.position.y, self.width, self.height)

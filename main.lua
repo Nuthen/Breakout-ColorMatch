@@ -3,12 +3,14 @@ Flux = require 'libs.flux'
 state = require 'libs.state'
 bump = require 'libs.bump'
 vector = require 'libs.vector'
+signal = require 'libs.signal'
 
 -- entities
 require 'objects.Brick'
 require 'objects.Paddle'
 require 'objects.Ball'
 require 'objects.StaticObject'
+require 'objects.fx.particle'
 
 -- gamestates
 require 'states.game'

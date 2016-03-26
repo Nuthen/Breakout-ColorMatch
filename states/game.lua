@@ -1,9 +1,14 @@
 game = {}
 
 objects = {}
-function game:add(obj)
+function game:add(obj, addToBump)
+    if addToBump == nil then
+        addToBump = true
+    end
     table.insert(objects, obj)
-    self.world:add(obj, obj.position.x, obj.position.y, obj.width, obj.height)
+    if addToBump then
+        self.world:add(obj, obj.position.x, obj.position.y, obj.width, obj.height)
+    end
     return obj
 end
 
@@ -23,16 +28,22 @@ end
 
 function game:enter()
     self.world = bump.newWorld()
+    
+    self.walls = {}
     -- Create the outer bounds area
     local wallSize = 5
     -- bottom wall
     local wall = self:add(StaticObject:new(0, love.graphics.getHeight()-wallSize, love.graphics.getWidth(), wallSize))
+    table.insert(self.walls, wall)
     -- top wall
     local wall = self:add(StaticObject:new(0, 0, love.graphics.getWidth(), wallSize))
+    table.insert(self.walls, wall)
     -- left wall
     local wall = self:add(StaticObject:new(0, 0, wallSize, love.graphics.getHeight())) 
+    table.insert(self.walls, wall)
     -- right wall
     local wall = self:add(StaticObject:new(love.graphics.getWidth()-wallSize, 0, wallSize, love.graphics.getHeight()))
+    table.insert(self.walls, wall)
 
     -- gameWidth and gameHeight is screen size minus the padding area
     local gameWidth = love.graphics.getWidth() - 64
@@ -71,6 +82,8 @@ function game:enter()
     self.colorChoices = activeColors
 
     self.colors = colours
+
+    self:add(Particles:new(), false)
 end
 
 function game:update(dt)
@@ -81,7 +94,9 @@ function game:update(dt)
     end
 
     for key, obj in pairs(objects) do
-        obj:update(dt, self.world)
+        if self.world:hasItem(obj) then
+            obj:update(dt, self.world)
+        end
     end
 
     -- Determines when the target block should be changed
@@ -90,6 +105,10 @@ function game:update(dt)
         self.switchTimer = 0
 
         self:pickTarget()
+    end
+
+    for i, wall in pairs(self.walls) do
+        wall.color = self.colors[self.targetColor]
     end
 end
 
@@ -142,7 +161,7 @@ end
 
 function game:draw()
     love.graphics.setColor(255, 255, 255)
-    love.graphics.setBackgroundColor(0, 0, 0)
+    love.graphics.setBackgroundColor(255, 2, 100)
 
     for key, obj in pairs(objects) do
         obj:draw()
