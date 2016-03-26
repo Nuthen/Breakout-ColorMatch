@@ -1,10 +1,10 @@
 Ball = Class('Ball')
 
 function Ball:initialize(x, y)
-    self.width = 15
-    self.height = 15
+    self.width = 12
+    self.height = 12
     self.position = vector(x or love.graphics.getWidth()/2 - self.width/2, y or love.graphics.getHeight() - 400)
-    self.speed = 500
+    self.speed = 650
     self.velocity = vector(self.speed, self.speed)
     self.color = {255, 255, 255, 255}
     self.lineColor = {255, 0, 255, 255}
@@ -16,7 +16,7 @@ end
 function Ball:update(dt, world)
 	self:addToLine()
 
-    local goal = self.position + self.velocity * dt
+    local goal = self.position + self.velocity:normalized()*self.speed * dt
     local actualX, actualY, cols, len = world:move(self, goal.x, goal.y) 
     self.position.x, self.position.y = actualX, actualY
 
@@ -32,7 +32,7 @@ function Ball:update(dt, world)
             self.velocity.x = self.velocity.x * -1
         end
 
-        if other:isInstanceOf(Brick) then
+        if other:isInstanceOf(Brick) and game:isValidHit(other.colorIndex) then
             game:remove(other)
         end
     end

@@ -1,7 +1,10 @@
 Brick = Class('Brick', StaticObject)
 
+Brick.static.width = 40
+Brick.static.height = 24
+
 function Brick:initialize(x, y, color, colorIndex)
-	StaticObject.initialize(self, x, y, 40, 24)
+	StaticObject.initialize(self, x, y, Brick.width, Brick.height)
     assert(self.draw)
     self.color = color
 	self.colorIndex = colorIndex

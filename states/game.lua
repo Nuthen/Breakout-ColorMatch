@@ -24,7 +24,7 @@ end
 function game:enter()
     self.world = bump.newWorld()
     -- Create the outer bounds area
-    local wallSize = 20
+    local wallSize = 5
     -- bottom wall
     local wall = self:add(StaticObject:new(0, love.graphics.getHeight()-wallSize, love.graphics.getWidth(), wallSize))
     -- top wall
@@ -38,17 +38,19 @@ function game:enter()
     local gameWidth = love.graphics.getWidth() - 64
     local gameHeight = love.graphics.getHeight() - 32
 
-    local rows = math.floor(gameWidth / 40) - 1
+    local xSpacing = 10
+    local ySpacing = 10
+    local rows = math.floor(gameWidth / (Brick.width + xSpacing)) - 1
     local columns = 6
-    local xoff = (love.graphics.getWidth() - rows*40)/2
+    local xoff = (love.graphics.getWidth() - rows*(Brick.width + xSpacing))/2
     local yoff = 80
 
     local activeColors = 3
 
     local colours = {}
-    colours[1] = {255, 0, 0}
-    colours[2] = {0, 255, 0}
-    colours[3] = {0, 0, 255}
+    colours[1] = {255, 107, 107}
+    colours[2] = {199, 244, 100}
+    colours[3] = {78, 205, 196}
     colours[4] = {255, 255, 0}
     colours[5] = {255, 0, 255}
     colours[6] = {0, 255, 255}
@@ -56,7 +58,7 @@ function game:enter()
     for y = 1, columns do
         for x = 1, rows do
             local colorType = (math.floor((x-1)*(1/4)) + y) % activeColors + 1
-            local brick = self:add(Brick:new(xoff + (x-1) * 40, yoff + (y-1) * 24, colours[colorType], colorType))
+            local brick = self:add(Brick:new(xoff + (x-1) * (Brick.width + xSpacing), yoff + (y-1) * (Brick.height + ySpacing), colours[colorType], colorType))
         end
     end
 

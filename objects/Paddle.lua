@@ -30,5 +30,15 @@ function Paddle:update(dt, world)
 
     for i, col in pairs(cols) do
         local other = col.other
+    
+        -- give the ball some "spin"
+        if other:isInstanceOf(Ball) then
+            other.velocity = other.velocity + goal
+            if love.keyboard.isDown("a", "left") then
+                other.velocity.x = other.velocity.x - self.speed 
+            elseif love.keyboard.isDown("d", "right") then
+                other.velocity.x = other.velocity.x + self.speed
+            end
+        end
     end
 end
