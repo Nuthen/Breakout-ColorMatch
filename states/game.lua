@@ -123,7 +123,7 @@ function game:enter()
     end)
 
     self.camera = camera.new(300, 400)
-    self.cameraLookMarginX = 300
+    self.cameraLookMarginX = 290
     self.cameraLookMarginY = 400
     self.cameraAngle = 0
 
@@ -180,7 +180,7 @@ function game:update(dt)
 
         self.particles:update(dt)
         self.sound:update(dt)
-        self.camera:lookAt(self.ball.position.x + self.ball.width/2, self.ball.position.y + self.ball.height/2)
+        self.camera:lookAt(300 + .10*(self.ball.position.x + self.ball.width/2 - 300), self.ball.position.y + self.ball.height/2)
         self.camera:zoomTo(self.scaleDilation)
 
         local marginX = self.cameraLookMarginX * 1/self.camera.scale
@@ -270,6 +270,13 @@ function game:draw()
         obj:draw()
     end
     self.ball:draw()
+
+    if self.startTimer > self.startTick then
+        love.graphics.setColor(self.colors[self.targetColor]) -- fix some issues around the borders
+        love.graphics.rectangle("fill", 594, 0, 70, 800)
+        love.graphics.rectangle("fill", -64, 790, 78, 64)
+    end
+
 
     self.particles:draw()
 
