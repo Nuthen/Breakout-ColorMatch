@@ -27,22 +27,24 @@ function game:isValidHit(colorType)
 end
 
 function game:enter()
+    objects = {}
+
     self.world = bump.newWorld()
     
     self.walls = {}
     -- Create the outer bounds area
     local wallSize = 5
     -- bottom wall
-    local wall = self:add(StaticObject:new(0, love.graphics.getHeight()-wallSize, love.graphics.getWidth(), wallSize))
+    local wall = self:add(StaticObject:new(0, love.graphics.getHeight()-wallSize, love.graphics.getWidth(), wallSize, "bottom"))
     table.insert(self.walls, wall)
     -- top wall
-    local wall = self:add(StaticObject:new(0, 0, love.graphics.getWidth(), wallSize))
+    local wall = self:add(StaticObject:new(0, 0, love.graphics.getWidth()-4, wallSize, "top"))
     table.insert(self.walls, wall)
     -- left wall
-    local wall = self:add(StaticObject:new(0, 0, wallSize, love.graphics.getHeight())) 
+    local wall = self:add(StaticObject:new(0, 0, wallSize, love.graphics.getHeight()-4, "left")) 
     table.insert(self.walls, wall)
     -- right wall
-    local wall = self:add(StaticObject:new(love.graphics.getWidth()-wallSize, 0, wallSize, love.graphics.getHeight()))
+    local wall = self:add(StaticObject:new(love.graphics.getWidth()-wallSize, 0, wallSize, love.graphics.getHeight(), "right"))
     table.insert(self.walls, wall)
 
     -- gameWidth and gameHeight is screen size minus the padding area
@@ -92,6 +94,7 @@ function game:enter()
 
     self.timeDilation = 1
     self.scaleDilation = 1
+    self.rotateAmount = 10
 
     self.sound = Sound:new()
 
@@ -101,15 +104,32 @@ function game:enter()
         Flux.to(self, 1, {timeDilation = 1})
     end)
 
+    signal.register('wallHit', function(obj, wall)
+        local dir = 0
+        if wall.tag == "right" then dir = math.rad(-self.rotateAmount) end
+        if wall.tag == "left" then dir = math.rad(self.rotateAmount) end
+
+        if obj.position.y > 400 then
+            dir = -dir
+        end
+
+        if dir ~= 0 then
+            Flux.to(self, .2, {cameraAngle = dir}):after(self, .4, {cameraAngle = 0})
+        end
+    end)
+
     self.camera = camera.new(300, 400)
-    self.camera:lockX(0)
     self.cameraLookMarginX = 200
     self.cameraLookMarginY = 400
+    self.cameraAngle = 0
+
+    self.startTick = 5
+    self.startTimer = 0
 end
 
 function game:addShakeAccel(accel)
     -- cap the largest possible amount of acceleration
-    local maxAccel = 20000
+    local maxAccel = 2000000
     if accel:len() > maxAccel then
         accel = accel:normalized() * maxAccel
     end
@@ -118,49 +138,53 @@ function game:addShakeAccel(accel)
 end
 
 function game:update(dt)
-    dt = dt * self.timeDilation
-
-    -- screen shake
-    self.shakeAccel = self.shakeAccel - self.shakeReturnSpeed*self.shakeAccel
-    self.shakeVel = self.shakeVel + self.shakeAccel*dt
-    self.shakePos = self.shakePos + self.shakeVel*dt
-    self.shakePos = self.shakePos - self.shakeReturnSpeed*self.shakePos
-    self.shakeVel = self.shakeVel * .9 -- damping
-    --
-
     Flux.update(dt)
 
-    if love.keyboard.isDown('escape') then
-        love.event.push('quit')
-    end
+    self.startTimer = self.startTimer + dt
+    if self.startTimer > self.startTick then
+        dt = dt * self.timeDilation
 
-    for key, obj in pairs(objects) do
-        if self.world:hasItem(obj) then
-            obj:update(dt, self.world)
+        -- screen shake
+        self.shakeAccel = self.shakeAccel - self.shakeReturnSpeed*self.shakeAccel
+        self.shakeVel = self.shakeVel + self.shakeAccel*dt
+        self.shakePos = self.shakePos + self.shakeVel*dt
+        self.shakePos = self.shakePos - self.shakeReturnSpeed*self.shakePos
+        self.shakeVel = self.shakeVel * .9 -- damping
+        --
+
+        if love.keyboard.isDown('escape') then
+            love.event.push('quit')
         end
+
+        for key, obj in pairs(objects) do
+            if self.world:hasItem(obj) then
+                obj:update(dt, self.world)
+            end
+        end
+
+        -- Determines when the target block should be changed
+        self.switchTimer = self.switchTimer + dt
+        if self.switchTimer >= self.switchTick then
+            self.switchTimer = 0
+
+            self:pickTarget()
+        end
+
+        for i, wall in pairs(self.walls) do
+            wall.color = self.colors[self.targetColor]
+        end
+
+        self.particles:update(dt)
+        self.sound:update(dt)
+        self.camera:lookAt(self.ball.position.x + self.ball.width/2, self.ball.position.y + self.ball.height/2)
+        self.camera:zoomTo(self.scaleDilation)
+
+        local marginX = self.cameraLookMarginX * 1/self.camera.scale
+        local marginY = self.cameraLookMarginY * 1/self.camera.scale
+        self.camera.x = math.max(marginX, math.min(600-marginX, self.camera.x))
+        self.camera.y = math.max(marginY, math.min(600-marginY, self.camera.y))
+        self.camera:rotateTo(self.cameraAngle)
     end
-
-    -- Determines when the target block should be changed
-    self.switchTimer = self.switchTimer + dt
-    if self.switchTimer >= self.switchTick then
-        self.switchTimer = 0
-
-        self:pickTarget()
-    end
-
-    for i, wall in pairs(self.walls) do
-        wall.color = self.colors[self.targetColor]
-    end
-
-    self.particles:update(dt)
-    self.sound:update(dt)
-    self.camera:lookAt(self.ball.position.x + self.ball.width/2, self.ball.position.y + self.ball.height/2)
-    self.camera:zoomTo(self.scaleDilation)
-
-    local marginX = self.cameraLookMarginX * 1/self.camera.scale
-    local marginY = self.cameraLookMarginY * 1/self.camera.scale
-    self.camera.x = math.max(marginX, math.min(600-marginX, self.camera.x))
-    self.camera.y = math.max(marginY, math.min(600-marginY, self.camera.y))
 end
 
 function game:remainingOfColor(colorType)
@@ -203,7 +227,9 @@ function game:pickTarget()
 end
 
 function game:keypressed(key, code)
-
+    if key == 'r' then
+        state.switch(game)
+    end
 end
 
 function game:mousepressed(x, y, mbutton)
@@ -217,9 +243,9 @@ function game:draw()
 
     -- everything in here will be a part of the screen shake
     love.graphics.push()
-    love.graphics.translate(self.shakePos.x, self.shakePos.y)
 
     self.camera:attach()
+    love.graphics.translate(self.shakePos.x, self.shakePos.y)
 
     --love.graphics.scale(self.scaleDilation)
     --love.graphics.translate(1/self.scaleDilation * (-self.ball.position.x + self.ball.width/2 + 300), 1/self.scaleDilation*(-self.ball.position.y + self.ball.height/2 + 400))
@@ -227,6 +253,14 @@ function game:draw()
 
     love.graphics.setColor(127, 127, 127) -- this is the true background color
     love.graphics.rectangle('fill', 5, 5, love.graphics.getWidth()-5, love.graphics.getHeight()-5) -- draws the background color
+
+    -- shadows
+    for key, obj in pairs(objects) do
+        if obj.drawShadow then
+            obj:drawShadow()
+        end
+    end
+    self.ball:drawShadow()
 
     for key, obj in pairs(objects) do
         obj:draw()

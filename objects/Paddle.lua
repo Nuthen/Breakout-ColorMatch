@@ -20,6 +20,12 @@ function Paddle:draw()
 	love.graphics.rectangle("fill", self.position.x, self.position.y, self.width, self.height)
 end
 
+function Paddle:drawShadow()
+    local offset = 4
+    love.graphics.setColor(70, 70, 70, 255)
+    love.graphics.rectangle("fill", self.position.x + offset, self.position.y + offset, self.width, self.height)
+end
+
 function Paddle:update(dt, world)
     local goal = self.position:clone()
     if love.keyboard.isDown("a", "left") then
