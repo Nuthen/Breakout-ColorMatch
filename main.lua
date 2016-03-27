@@ -11,6 +11,7 @@ require 'objects.Paddle'
 require 'objects.Ball'
 require 'objects.StaticObject'
 require 'objects.fx.particle'
+require 'objects.sound.sound'
 
 -- gamestates
 require 'states.game'

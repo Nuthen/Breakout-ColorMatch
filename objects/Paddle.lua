@@ -53,3 +53,8 @@ function Paddle:update(dt, world)
         end
     end
 end
+
+
+function Paddle:getLocalPercentage(x)
+    return (x - (self.position.x + self.width/2)) / (self.width/2)
+end

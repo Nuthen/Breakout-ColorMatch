@@ -16,6 +16,7 @@ function Ball:initialize(x, y)
     self.shakeStrength = 20 -- multiplied by velocity
 
     self.angle = 0
+    self.maxRotate = math.rad(30)
 end
 
 function Ball:update(dt, world)
@@ -51,13 +52,26 @@ function Ball:update(dt, world)
 
         if other:isInstanceOf(Paddle) then
             self.speed = self.speed * 1.01
+            local perc = other:getLocalPercentage(self.position.x + self.width/2)
+
+            --self.velocity = self.velocity:rotated(perc * self.maxRotate)
+
+            local negative = self.velocity.y < 0
+            self.velocity = vector(0, -self.velocity:len())
+            self.velocity = self.velocity:rotated(perc * self.maxRotate)
+            if not negative then self.velocity.y = self.velocity.y * -1 end
+
 
             signal.emit('paddleHit', self, other)
         end
 
-        if other:isInstanceOf(Brick) and game:isValidHit(other.colorIndex) then
-            game:remove(other)
-            signal.emit('brickHit', self, other, self.velocity.x, self.velocity.y)
+        if other:isInstanceOf(Brick) then
+        	if game:isValidHit(other.colorIndex) then
+	            game:remove(other)
+	            signal.emit('brickHit', self, other, self.velocity.x, self.velocity.y)
+	        else
+	            signal.emit('brickFail', self, other, self.velocity.x, self.velocity.y)
+	        end
         end
     end
 

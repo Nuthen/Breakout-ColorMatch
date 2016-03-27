@@ -89,9 +89,17 @@ function game:enter()
     self.shakeReturnSpeed = .1 -- rate it returns to the center
     self.shakeVel = vector(0, 0)
     self.shakeAccel = vector(0, 0)
+
+    self.sound = Sound:new()
 end
 
 function game:addShakeAccel(accel)
+    -- cap the largest possible amount of acceleration
+    local maxAccel = 20000
+    if accel:len() > maxAccel then
+        accel = accel:normalized() * maxAccel
+    end
+
     self.shakeAccel = self.shakeAccel + accel
 end
 
@@ -129,6 +137,7 @@ function game:update(dt)
     end
 
     self.particles:update(dt)
+    self.sound:update(dt)
 end
 
 function game:remainingOfColor(colorType)
