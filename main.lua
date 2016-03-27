@@ -16,6 +16,7 @@ require 'objects.sound.sound'
 
 -- gamestates
 require 'states.game'
+require 'states.menu'
 
 function love.load()
     _font = 'assets/font/OpenSans-Regular.ttf'
@@ -51,7 +52,7 @@ function love.load()
     love.graphics.setFont(font[14])
 
     state.registerEvents()
-    state.switch(game)
+    state.switch(menu)
 
     math.randomseed(os.time()/10)
 

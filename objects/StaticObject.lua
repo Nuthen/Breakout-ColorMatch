@@ -11,7 +11,7 @@ function StaticObject:initialize(x, y, w, h, tag)
     self.posY = self.position.y
     if self.tag ~= "top" and self.tag ~= "bottom" and self.tag ~= "left" and self.tag ~= "right" then
     	self.posY = self.posY - 400
-		Flux.to(self, 4, {posY = self.position.y}):delay(math.random()):ease("elasticout")
+		Flux.to(self, 3, {posY = self.position.y}):delay(math.random()):ease("elasticout")
 	end
 end
 

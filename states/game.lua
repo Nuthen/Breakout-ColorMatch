@@ -98,6 +98,9 @@ function game:enter()
     self.rotateAmount = 10
 
     self.sound = Sound:new()
+    local music = love.audio.newSource("assets/sound/techno-caper.mp3")
+    music:play()
+    music:setLooping(true)
 
     signal.register('brickHit', function(obj, wall)
         self.timeDilation = .5
@@ -120,7 +123,7 @@ function game:enter()
     end)
 
     self.camera = camera.new(300, 400)
-    self.cameraLookMarginX = 290
+    self.cameraLookMarginX = 300
     self.cameraLookMarginY = 400
     self.cameraAngle = 0
 
@@ -130,7 +133,7 @@ end
 
 function game:addShakeAccel(accel)
     -- cap the largest possible amount of acceleration
-    local maxAccel = 2000000
+    local maxAccel = 2000
     if accel:len() > maxAccel then
         accel = accel:normalized() * maxAccel
     end
