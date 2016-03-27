@@ -15,6 +15,8 @@ function Brick:budge(vel)
 	local dir = math.atan2(vel.y, vel.x)
 	local x, y = self.position.x, self.position.y
 	Flux.to(self, .1, {posX = x + math.cos(dir)*5, posY = y + math.sin(dir)*5}):after(self, .2, {posX = x, posY = y})
+
+	Flux.to(self, .5, {width = self.widthStart*(4/5)}):after(self, 1, {width = self.widthStart}):ease("elasticout")
 end
 
 function Brick:update(dt, world)

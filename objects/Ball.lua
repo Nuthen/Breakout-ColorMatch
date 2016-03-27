@@ -13,7 +13,7 @@ function Ball:initialize(x, y)
     self.posMax = 80
     self.trailTime = 0
 
-    self.shakeStrength = 250 -- multiplied by velocity
+    self.shakeStrength = 150 -- multiplied by velocity
 
     self.angle = 0
     self.maxRotate = math.rad(30)
@@ -50,6 +50,7 @@ function Ball:update(dt, world)
 
         -- haven't tested this
         if other:isInstanceOf(StaticObject) and not other:isInstanceOf(Brick) then
+        	other:pushOut()
             signal.emit('wallHit', self, other)
         end
 
