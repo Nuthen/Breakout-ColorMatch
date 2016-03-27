@@ -34,17 +34,18 @@ function game:enter()
     self.walls = {}
     -- Create the outer bounds area
     local wallSize = 5
+    local lrOffset = 10
     -- bottom wall
-    local wall = self:add(StaticObject:new(0, love.graphics.getHeight()-wallSize, love.graphics.getWidth(), wallSize, "bottom"))
+    local wall = self:add(StaticObject:new(-5, love.graphics.getHeight()-wallSize, love.graphics.getWidth()+5, wallSize, "bottom"))
     table.insert(self.walls, wall)
     -- top wall
     local wall = self:add(StaticObject:new(0, 0, love.graphics.getWidth()-4, wallSize, "top"))
     table.insert(self.walls, wall)
     -- left wall
-    local wall = self:add(StaticObject:new(0, 0, wallSize, love.graphics.getHeight()-4, "left")) 
+    local wall = self:add(StaticObject:new(-lrOffset, 0, wallSize+lrOffset*2, love.graphics.getHeight()-5, "left")) 
     table.insert(self.walls, wall)
     -- right wall
-    local wall = self:add(StaticObject:new(love.graphics.getWidth()-wallSize, 0, wallSize, love.graphics.getHeight(), "right"))
+    local wall = self:add(StaticObject:new(love.graphics.getWidth()-wallSize-lrOffset, 0, wallSize+lrOffset, love.graphics.getHeight(), "right"))
     table.insert(self.walls, wall)
 
     -- gameWidth and gameHeight is screen size minus the padding area
@@ -119,7 +120,7 @@ function game:enter()
     end)
 
     self.camera = camera.new(300, 400)
-    self.cameraLookMarginX = 200
+    self.cameraLookMarginX = 290
     self.cameraLookMarginY = 400
     self.cameraAngle = 0
 

@@ -13,7 +13,7 @@ function Ball:initialize(x, y)
     self.posMax = 80
     self.trailTime = 0
 
-    self.shakeStrength = 300 -- multiplied by velocity
+    self.shakeStrength = 250 -- multiplied by velocity
 
     self.angle = 0
     self.maxRotate = math.rad(30)
