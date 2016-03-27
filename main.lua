@@ -2,6 +2,7 @@ Class = require 'libs.middleclass'
 Flux = require 'libs.flux'
 state = require 'libs.state'
 bump = require 'libs.bump'
+camera = require 'libs.camera'
 vector = require 'libs.vector'
 signal = require 'libs.signal'
 

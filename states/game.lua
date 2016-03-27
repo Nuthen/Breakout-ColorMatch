@@ -90,7 +90,21 @@ function game:enter()
     self.shakeVel = vector(0, 0)
     self.shakeAccel = vector(0, 0)
 
+    self.timeDilation = 1
+    self.scaleDilation = 1
+
     self.sound = Sound:new()
+
+    signal.register('brickHit', function(obj, wall)
+        self.timeDilation = .5
+        Flux.to(self, .3, {scaleDilation = 1.2}):after(self, .3, {scaleDilation = 1})
+        Flux.to(self, 1, {timeDilation = 1})
+    end)
+
+    self.camera = camera.new(300, 400)
+    self.camera:lockX(0)
+    self.cameraLookMarginX = 200
+    self.cameraLookMarginY = 400
 end
 
 function game:addShakeAccel(accel)
@@ -104,6 +118,8 @@ function game:addShakeAccel(accel)
 end
 
 function game:update(dt)
+    dt = dt * self.timeDilation
+
     -- screen shake
     self.shakeAccel = self.shakeAccel - self.shakeReturnSpeed*self.shakeAccel
     self.shakeVel = self.shakeVel + self.shakeAccel*dt
@@ -138,6 +154,13 @@ function game:update(dt)
 
     self.particles:update(dt)
     self.sound:update(dt)
+    self.camera:lookAt(self.ball.position.x + self.ball.width/2, self.ball.position.y + self.ball.height/2)
+    self.camera:zoomTo(self.scaleDilation)
+
+    local marginX = self.cameraLookMarginX * 1/self.camera.scale
+    local marginY = self.cameraLookMarginY * 1/self.camera.scale
+    self.camera.x = math.max(marginX, math.min(600-marginX, self.camera.x))
+    self.camera.y = math.max(marginY, math.min(600-marginY, self.camera.y))
 end
 
 function game:remainingOfColor(colorType)
@@ -196,6 +219,12 @@ function game:draw()
     love.graphics.push()
     love.graphics.translate(self.shakePos.x, self.shakePos.y)
 
+    self.camera:attach()
+
+    --love.graphics.scale(self.scaleDilation)
+    --love.graphics.translate(1/self.scaleDilation * (-self.ball.position.x + self.ball.width/2 + 300), 1/self.scaleDilation*(-self.ball.position.y + self.ball.height/2 + 400))
+    --love.graphics.translate(self.ball.position.x, self.ball.position.y)
+
     love.graphics.setColor(127, 127, 127) -- this is the true background color
     love.graphics.rectangle('fill', 5, 5, love.graphics.getWidth()-5, love.graphics.getHeight()-5) -- draws the background color
 
@@ -205,6 +234,9 @@ function game:draw()
     self.ball:draw()
 
     self.particles:draw()
+
+
+    self.camera:detach()
 
     love.graphics.pop()
     --
