@@ -98,7 +98,7 @@ function game:enter()
     self.rotateAmount = 10
 
     self.sound = Sound:new()
-    local music = love.audio.newSource("assets/sound/techno-caper.mp3")
+    local music = love.audio.newSource("assets/sound/Techno-Caper.mp3")
     music:play()
     music:setLooping(true)
 

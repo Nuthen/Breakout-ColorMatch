@@ -40,7 +40,7 @@ function Paddle:update(dt, world)
     self.position.x, self.position.y = actualX, actualY
 
     for i, col in pairs(cols) do
-        game:addShakeAccel(self.velocity*self.shakeStrength)
+        --game:addShakeAccel(self.velocity*self.shakeStrength)
 
         local other = col.other
     

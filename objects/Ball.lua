@@ -95,6 +95,9 @@ function Ball:addToLine()
 end
 
 function Ball:draw()
+    local lineJoin = love.graphics.getLineJoin()
+    love.graphics.setLineJoin('none')
+
 	if #self.prevPos >= 4 then
 		love.graphics.setColor(self.lineColor[1], self.lineColor[2], self.lineColor[3], 50)
 		love.graphics.setLineWidth(3)
@@ -108,6 +111,8 @@ function Ball:draw()
 		love.graphics.setLineWidth(1)
 	    love.graphics.line(self.prevPos)
     end
+
+    love.graphics.setLineJoin(lineJoin)
 
     love.graphics.push()
     love.graphics.translate(self.position.x + self.width/2, self.position.y + self.width/2)

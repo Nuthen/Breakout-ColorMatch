@@ -109,6 +109,8 @@ function Particles:update(dt)
 end
 
 function Particles:draw()
+    love.graphics.setColor(255, 255, 255, 255)
+
     for i, system in pairs(self.systems) do
         love.graphics.draw(system)
     end
